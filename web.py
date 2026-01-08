@@ -1,14 +1,13 @@
 import os
 from flask import Flask, render_template, request, redirect, abort, jsonify
 from service import criar_url_curta, buscar_url_original
-from database import get_connection
+from database import get_connection, init_db
 
 app = Flask(__name__)
 
 # ==========================
 #       HEALTH CHECK
 # ==========================
-
 @app.route("/health", methods=["GET"])
 def health():
     try:
@@ -24,23 +23,25 @@ def health():
             "database": "ok"
         }), 200
 
-    except Exception as e:
+    except Exception:
         return jsonify({
             "status": "error",
             "service": "url-encoder",
             "database": "down"
         }), 500
 
-# =========================
+
+# ===========================
 # Configurações via ambiente
-# =========================
+# ===========================
 APP_NAME = os.getenv("APP_NAME", "url-encoder")
 APP_HOST = os.getenv("APP_HOST", "0.0.0.0")
 APP_PORT = int(os.getenv("APP_PORT", 5000))
 BASE_URL = os.getenv("BASE_URL", "http://localhost")
 
+
 # =========================
-# Rotas
+#          Rotas
 # =========================
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -69,8 +70,9 @@ def redirecionar(codigo):
 
 
 # =========================
-# Inicialização
+#      Inicialização
 # =========================
 if __name__ == "__main__":
-    print(f" {APP_NAME} iniciado em {APP_HOST}:{APP_PORT}")
+    init_db()
+    print(f"{APP_NAME} iniciado em {APP_HOST}:{APP_PORT}")
     app.run(host=APP_HOST, port=APP_PORT)
